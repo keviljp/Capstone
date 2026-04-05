@@ -1,6 +1,6 @@
 # swarm_state_ws
 
-ROS 2 Humble workspace for Josh's capstone state-estimation subsystem:
+ROS 2 Humble workspace for capstone state-estimation subsystem:
 
 - USB overhead camera on the host computer
 - AprilTag detection using `apriltag_ros`
