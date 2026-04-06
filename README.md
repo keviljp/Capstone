@@ -10,7 +10,7 @@ ROS 2 Humble workspace for capstone state-estimation subsystem:
 
 ## What this repo does
 
-This repo owns **your part only**:
+This repo owns **Josh's part only**:
 
 - reads a USB camera
 - publishes `/camera/image_raw`, `/camera/image_rect`, and `/camera/camera_info`
