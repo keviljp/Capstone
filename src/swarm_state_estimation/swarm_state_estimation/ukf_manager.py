@@ -46,8 +46,9 @@ class UkfManager(Node):
 
     def _make_config(self, robot_id: str) -> Path:
         robot_ns = ensure_robot_ns(robot_id)
-        base_link_frame = f'{robot_ns.strip('/')}/base_link'
-        odom_frame = f'{robot_ns.strip('/')}/odom_frame'
+        ns_stripped = robot_ns.strip('/')
+        base_link_frame = f'{ns_stripped}/base_link'
+        odom_frame = f'{ns_stripped}/odom_frame'
 
         cfg = yaml.safe_load(yaml.safe_dump(self.template))
         params = cfg.setdefault('ukf_filter_node', {}).setdefault('ros__parameters', {})
@@ -81,7 +82,7 @@ class UkfManager(Node):
             '--params-file', str(config_file),
         ]
 
-        self.get_logger().info(f'Starting UKF for {robot_id}: {' '.join(cmd)}')
+        self.get_logger().info(f"Starting UKF for {robot_id}: {' '.join(cmd)}")
         proc = subprocess.Popen(cmd)
         self.processes[robot_id] = proc
 
