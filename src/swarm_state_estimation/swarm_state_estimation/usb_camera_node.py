@@ -44,11 +44,34 @@ class UsbCameraNode(Node):
         self.camera_info = self._load_camera_info(self.calibration_file)
         self.k = np.array(self.camera_info.k, dtype=np.float64).reshape(3, 3)
         self.d = np.array(self.camera_info.d, dtype=np.float64)
+        # Precompute undistort maps once (cv2.undistort recomputes these every
+        # frame, which is the dominant cost at 1080p). Use cv2.remap with these
+        # maps for a 5-10x speedup.
+        self._undistort_map1 = None
+        self._undistort_map2 = None
+        if len(self.d) > 0:
+            self._undistort_map1, self._undistort_map2 = cv2.initUndistortRectifyMap(
+                self.k, self.d, None, self.k,
+                (self.width, self.height), cv2.CV_16SC2)
 
         self.capture = cv2.VideoCapture(self.video_device, cv2.CAP_V4L2)
+        # Request MJPG before setting size: many UVC cams only offer high
+        # resolutions at full FPS in MJPG (YUYV is often 5-10 fps at 1080p).
+        self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
         self.capture.set(cv2.CAP_PROP_FPS, self.fps)
+        # Keep only the newest frame in the driver buffer; otherwise frames
+        # accumulate when the processing loop falls behind real-time.
+        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
+        actual_w = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        actual_h = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        actual_fps = self.capture.get(cv2.CAP_PROP_FPS)
+        if (actual_w, actual_h) != (self.width, self.height):
+            self.get_logger().warn(
+                f'Requested {self.width}x{self.height} but camera negotiated '
+                f'{actual_w}x{actual_h} @ {actual_fps:.1f} FPS')
 
         if not self.capture.isOpened():
             raise RuntimeError(f'Could not open camera device: {self.video_device}')
@@ -130,12 +153,13 @@ class UsbCameraNode(Node):
             self.rect_pub.publish(rect_msg)
 
     def _rectify(self, frame: np.ndarray) -> np.ndarray:
-        if len(self.d) == 0:
+        if self._undistort_map1 is None:
             return frame
         try:
-            return cv2.undistort(frame, self.k, self.d)
+            return cv2.remap(frame, self._undistort_map1, self._undistort_map2,
+                             interpolation=cv2.INTER_LINEAR)
         except cv2.error as exc:
-            self.get_logger().warning(f'OpenCV undistort failed: {exc}. Publishing raw image on image_rect semantics.')
+            self.get_logger().warning(f'OpenCV remap failed: {exc}. Publishing raw image on image_rect semantics.')
             return frame
 
     def destroy_node(self) -> bool:

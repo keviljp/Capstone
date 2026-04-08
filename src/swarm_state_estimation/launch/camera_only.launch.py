@@ -10,7 +10,7 @@ def generate_launch_description() -> LaunchDescription:
     share = Path(get_package_share_directory('swarm_state_estimation'))
     cfg = share / 'config'
     return LaunchDescription([
-        DeclareLaunchArgument('video_device', default_value='/dev/video0'),
+        DeclareLaunchArgument('video_device', default_value='/dev/video3'),
         Node(
             package='swarm_state_estimation',
             executable='usb_camera_node',

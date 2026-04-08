@@ -51,7 +51,11 @@ class UkfManager(Node):
         odom_frame = f'{ns_stripped}/odom_frame'
 
         cfg = yaml.safe_load(yaml.safe_dump(self.template))
-        params = cfg.setdefault('ukf_filter_node', {}).setdefault('ros__parameters', {})
+        # Use '/**' so the params match the namespaced node /swarmbot_<id>/ukf_filter_node.
+        # Strip any legacy top-level key from the template for safety.
+        if 'ukf_filter_node' in cfg and '/**' not in cfg:
+            cfg = {'/**': cfg['ukf_filter_node']}
+        params = cfg.setdefault('/**', {}).setdefault('ros__parameters', {})
         params['map_frame'] = 'map'
         params['odom_frame'] = odom_frame
         params['base_link_frame'] = base_link_frame

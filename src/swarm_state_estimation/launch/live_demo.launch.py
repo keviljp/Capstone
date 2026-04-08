@@ -17,7 +17,7 @@ def generate_launch_description() -> LaunchDescription:
 
     return LaunchDescription([
         DeclareLaunchArgument('use_rviz', default_value='false'),
-        DeclareLaunchArgument('video_device', default_value='/dev/video0'),
+        DeclareLaunchArgument('video_device', default_value='/dev/video3'),
 
         Node(
             package='swarm_state_estimation',

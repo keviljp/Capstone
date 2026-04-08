@@ -1,6 +1,6 @@
 # swarm_state_ws
 
-ROS 2 Humble workspace for capstone state-estimation subsystem:
+ROS 2 Jazzy workspace for capstone state-estimation subsystem (Ubuntu 24.04):
 
 - USB overhead camera on the host computer
 - AprilTag detection using `apriltag_ros`
@@ -46,10 +46,9 @@ swarm_state_ws/
 ## Install
 
 ```bash
-cd swarm_state_ws
-chmod +x bootstrap.sh
-./bootstrap.sh
-source /opt/ros/humble/setup.bash
+cd Capstone
+bash install_ros2.sh
+source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install
 source install/setup.bash
 ```
@@ -93,8 +92,8 @@ Change it to your real printed tag size.
 ## Run
 
 ```bash
-source /opt/ros/humble/setup.bash
-cd swarm_state_ws
+source /opt/ros/jazzy/setup.bash
+cd Capstone
 source install/setup.bash
 ros2 launch swarm_state_estimation live_demo.launch.py
 ```
@@ -184,7 +183,7 @@ ros2 topic echo /swarm_state/discovered_robot_id
 Install the ROS camera calibration package if needed:
 
 ```bash
-sudo apt install ros-humble-camera-calibration
+sudo apt install ros-jazzy-camera-calibration
 ```
 
 A common workflow is:

@@ -34,7 +34,7 @@ class TagRouter(Node):
             raise RuntimeError('tag_map_file parameter is required.')
 
         self.tag_map: Dict[int, str] = load_tag_map(tag_map_file)
-        self.publishers: Dict[str, any] = {}
+        self._pose_publishers: Dict[str, any] = {}
         self.discovered: Set[str] = set()
 
         x_var = float(self.get_parameter('x_variance').value)
@@ -66,9 +66,9 @@ class TagRouter(Node):
     def _publisher_for(self, robot_id: str):
         robot_ns = ensure_robot_ns(robot_id)
         topic = f'{robot_ns}/tag_pose'
-        if topic not in self.publishers:
-            self.publishers[topic] = self.create_publisher(PoseWithCovarianceStamped, topic, 10)
-        return self.publishers[topic]
+        if topic not in self._pose_publishers:
+            self._pose_publishers[topic] = self.create_publisher(PoseWithCovarianceStamped, topic, 10)
+        return self._pose_publishers[topic]
 
     def _frame_name(self, family: str, tag_id: int) -> str:
         family = family.strip()
